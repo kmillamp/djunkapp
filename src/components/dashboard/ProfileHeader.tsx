@@ -12,6 +12,7 @@ export const ProfileHeader = () => {
 
   const getGreeting = () => {
     const hour = new Date().getHours();
+
     if (hour >= 5 && hour < 12) {
       return `Bom dia, ${displayName}`;
     } else if (hour >= 12 && hour < 18) {
@@ -35,7 +36,6 @@ export const ProfileHeader = () => {
               {displayName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-
           {/* Badge de identificação */}
           <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full flex items-center justify-center border-2 border-background">
             {profile?.is_admin ? (
@@ -45,7 +45,6 @@ export const ProfileHeader = () => {
             )}
           </div>
         </div>
-
         <div>
           <div className="flex items-center gap-2">
             <h2 className="font-semibold text-foreground">{getGreeting()}</h2>
@@ -58,7 +57,6 @@ export const ProfileHeader = () => {
           <p className="text-sm text-muted-foreground">Vamos criar conexões reais hoje?</p>
         </div>
       </div>
-
       <div className="flex items-center gap-2">
         <Button variant="glass" size="sm">
           <Bell className="w-4 h-4" />

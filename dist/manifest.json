@@ -1,0 +1,27 @@
+{
+  "name": "Conexão UNK - Sistema de Gestão Musical",
+  "short_name": "Conexão UNK",
+  "description": "Sistema completo de gestão musical para DJs e artistas",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#100C1F",
+  "theme_color": "#100C1F",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "categories": ["music", "productivity", "entertainment"],
+  "lang": "pt-BR",
+  "dir": "ltr"
+}

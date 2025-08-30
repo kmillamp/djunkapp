@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { ArrowLeft, Plus, CheckSquare, Music, Instagram, Target, FileText } from 'lucide-react'
@@ -6,10 +6,38 @@ import { Button } from '@/components/ui/unk-button'
 import { GlassCard } from '@/components/ui/glass-card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { IPhoneMenu } from '@/components/IPhoneMenu'
+import { GoalForm } from '@/components/projects/GoalForm'
+import { TaskForm } from '@/components/projects/TaskForm'
+import { DocumentForm } from '@/components/projects/DocumentForm'
+import { PostForm } from '@/components/projects/InstagramPostForm'
+import { MusicProjectForm } from '@/components/projects/MusicProjectForm'
 
 export default function Projetos() {
   const navigate = useNavigate()
   const { user, isAdmin } = useAuth()
+  const [activeTab, setActiveTab] = useState('tasks')
+  const [showForm, setShowForm] = useState(false)
+
+  const handleNewClick = () => setShowForm(true)
+  const handleFormClose = () => setShowForm(false)
+
+  // Renderiza o formulário correto conforme a aba
+  const renderForm = () => {
+    switch (activeTab) {
+      case 'tasks':
+        return <TaskForm onTaskAdded={handleFormClose} />
+      case 'music':
+        return <MusicProjectForm onProjectAdded={handleFormClose} />
+      case 'instagram':
+        return <PostForm onAdd={handleFormClose} />
+      case 'goals':
+        return <GoalForm onGoalAdded={handleFormClose} />
+      case 'docs':
+        return <DocumentForm onDocumentAdded={handleFormClose} />
+      default:
+        return null
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#100C1F] to-black text-white p-4 pb-24">
@@ -24,14 +52,14 @@ export default function Projetos() {
         <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-teal-400 bg-clip-text text-transparent">
           Projetos
         </h1>
-        <Button variant="hero">
+        <Button variant="hero" onClick={handleNewClick}>
           <Plus className="w-4 h-4 mr-1" />
           Novo
         </Button>
       </div>
 
       <div className="max-w-4xl mx-auto">
-        <Tabs defaultValue="tasks" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger value="tasks" className="text-xs">
               <CheckSquare className="w-4 h-4 mr-1" />
@@ -106,6 +134,16 @@ export default function Projetos() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Modal do formulário */}
+      {showForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-zinc-900 rounded-lg p-6 w-full max-w-lg relative">
+            <button className="absolute top-2 right-2 text-white" onClick={handleFormClose}>&times;</button>
+            {renderForm()}
+          </div>
+        </div>
+      )}
 
       <IPhoneMenu />
     </div>

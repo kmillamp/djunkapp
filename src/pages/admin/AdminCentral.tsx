@@ -60,7 +60,7 @@ export default function AdminCentral() {
             <p className="text-gray-400 text-sm mb-4">
               Criar, editar e gerenciar contas de DJs
             </p>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => navigate('/admin/usuarios')}>
               Gerenciar Usuários
             </Button>
           </GlassCard>
@@ -73,7 +73,7 @@ export default function AdminCentral() {
             <p className="text-gray-400 text-sm mb-4">
               Métricas e análises do sistema
             </p>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => navigate('/admin/relatorios')}>
               Ver Relatórios
             </Button>
           </GlassCard>
@@ -86,7 +86,7 @@ export default function AdminCentral() {
             <p className="text-gray-400 text-sm mb-4">
               Gerenciar leads e novos contatos
             </p>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => navigate('/admin/prospeccao')}>
               Prospecção
             </Button>
           </GlassCard>
@@ -99,7 +99,7 @@ export default function AdminCentral() {
             <p className="text-gray-400 text-sm mb-4">
               Configurações gerais do sistema
             </p>
-            <Button variant="outline" className="w-full">
+            <Button variant="outline" className="w-full" onClick={() => navigate('/admin/configuracoes')}>
               Configurar
             </Button>
           </GlassCard>

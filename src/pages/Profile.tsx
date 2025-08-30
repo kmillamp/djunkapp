@@ -1,51 +1,57 @@
-import React, { useState, useRef } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useAuth } from '@/contexts/AuthContext'
-import {
-  ArrowLeft,
-  Camera,
-  User,
-  Mail,
-  Phone,
-  MapPin,
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
+
+import { 
+  ArrowLeft, 
+  Camera, 
+  User, 
+  Mail, 
+  Phone, 
+  MapPin, 
   Calendar,
-  ExternalLink,
-  Save,
-  Loader2,
   Instagram,
   Youtube,
-  Music
+  Music,
+  ExternalLink,
+  Save,
+  Loader2
 } from 'lucide-react'
-import { Button } from '@/components/ui/unk-button'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { supabase } from '@/lib/supabase';
+
+
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar'
-import { GlassCard } from '@/components/ui/glass-card'
+import { Card } from '@/components/ui/card'
+import { ImageCropper } from '@/components/ImageCropper'
 import { IPhoneMenu } from '@/components/IPhoneMenu'
 import { toast } from 'sonner'
 
 export default function Profile() {
   const navigate = useNavigate()
-  const { user, profile, updateProfile, uploadAvatar, signOut, isAdmin } = useAuth()
+  const { user, updateProfile, uploadAvatar, logout, isAdmin } = useAuth()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const [editing, setEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [uploadingPhoto, setUploadingPhoto] = useState(false)
+  const [cropperOpen, setCropperOpen] = useState(false)
 
   const [formData, setFormData] = useState({
-    full_name: profile?.full_name || '',
-    artist_name: profile?.artist_name || '',
-    phone: profile?.phone || '',
-    location: profile?.location || '',
-    bio: profile?.bio || '',
-    birth_date: profile?.birth_date || '',
-    pix_key: profile?.pix_key || '',
-    portfolio_url: profile?.portfolio_url || '',
-    instagram_url: profile?.instagram_url || '',
-    youtube_url: profile?.youtube_url || '',
-    soundcloud_url: profile?.soundcloud_url || '',
-    presskit_url: profile?.presskit_url || ''
+    full_name: user?.full_name || '',
+    artist_name: user?.artist_name || '',
+    phone: user?.phone || '',
+    location: user?.location || '',
+    bio: user?.bio || '',
+    birth_date: user?.birth_date || '',
+    pix_key: user?.pix_key || '',
+    portfolio_url: user?.portfolio_url || '',
+    instagram_url: user?.instagram_url || '',
+    youtube_url: user?.youtube_url || '',
+    soundcloud_url: user?.soundcloud_url || '',
+    presskit_url: user?.presskit_url || ''
   })
 
   console.log('Profile page loaded for user:', user?.email)
@@ -69,14 +75,11 @@ export default function Profile() {
     }
   }
 
-  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
+  const handleCroppedImage = async (croppedImage: File) => {
     setUploadingPhoto(true)
     try {
-      console.log('Uploading avatar:', file.name)
-      await uploadAvatar(file)
+      console.log('Uploading cropped avatar:', croppedImage.name)
+      await uploadAvatar(croppedImage)
       toast.success('Foto atualizada com sucesso!')
     } catch (error) {
       console.error('Error uploading photo:', error)
@@ -89,7 +92,7 @@ export default function Profile() {
   const handleLogout = async () => {
     try {
       console.log('Logging out user')
-      await signOut()
+      await logout()
       navigate('/login', { replace: true })
     } catch (error) {
       console.error('Logout error:', error)
@@ -117,27 +120,19 @@ export default function Profile() {
 
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Profile Header */}
-        <GlassCard className="p-6">
+        <Card className="p-6 bg-black/40 backdrop-blur-xl border border-white/10">
           <div className="flex flex-col items-center text-center">
             {/* Avatar */}
             <div className="relative mb-4">
               <Avatar className="w-24 h-24">
-                <AvatarImage src={profile?.avatar_url} alt={profile?.full_name} />
+                <AvatarImage src={user?.avatar_url} alt={user?.full_name} />
                 <AvatarFallback className="bg-purple-500/20 text-purple-300 text-xl font-semibold">
-                  {getInitials(profile?.full_name || user?.email || 'DJ')}
+                  {getInitials(user?.full_name || user?.email || 'DJ')}
                 </AvatarFallback>
               </Avatar>
-
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
-
+              
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={() => setCropperOpen(true)}
                 disabled={uploadingPhoto}
                 className="absolute -bottom-1 -right-1 w-8 h-8 bg-purple-500 hover:bg-purple-600 rounded-full flex items-center justify-center transition-colors"
               >
@@ -150,13 +145,13 @@ export default function Profile() {
             </div>
 
             <h2 className="text-xl font-bold text-white mb-1">
-              {profile?.artist_name || profile?.full_name || 'DJ'}
+              {user?.artist_name || user?.full_name || 'DJ'}
             </h2>
-            {profile?.artist_name && profile?.full_name && (
-              <p className="text-gray-400 text-sm">{profile.full_name}</p>
+            {user?.artist_name && user?.full_name && (
+              <p className="text-gray-400 text-sm">{user.full_name}</p>
             )}
             <p className="text-gray-500 text-sm">{user?.email}</p>
-
+            
             {isAdmin && (
               <div className="mt-2">
                 <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
@@ -165,10 +160,10 @@ export default function Profile() {
               </div>
             )}
           </div>
-        </GlassCard>
+        </Card>
 
         {/* Personal Information */}
-        <GlassCard className="p-6">
+        <Card className="p-6 bg-black/40 backdrop-blur-xl border border-white/10">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-white">Informações Pessoais</h3>
             <Button
@@ -202,7 +197,7 @@ export default function Profile() {
                     placeholder="Seu nome completo"
                   />
                 ) : (
-                  <p className="text-white p-2">{profile?.full_name || 'Não informado'}</p>
+                  <p className="text-white p-2">{user?.full_name || 'Não informado'}</p>
                 )}
               </div>
 
@@ -218,7 +213,7 @@ export default function Profile() {
                     placeholder="Seu nome artístico"
                   />
                 ) : (
-                  <p className="text-white p-2">{profile?.artist_name || 'Não informado'}</p>
+                  <p className="text-white p-2">{user?.artist_name || 'Não informado'}</p>
                 )}
               </div>
             </div>
@@ -236,7 +231,7 @@ export default function Profile() {
                     placeholder="(11) 99999-9999"
                   />
                 ) : (
-                  <p className="text-white p-2">{profile?.phone || 'Não informado'}</p>
+                  <p className="text-white p-2">{user?.phone || 'Não informado'}</p>
                 )}
               </div>
 
@@ -252,7 +247,7 @@ export default function Profile() {
                     placeholder="Cidade, Estado"
                   />
                 ) : (
-                  <p className="text-white p-2">{profile?.location || 'Não informado'}</p>
+                  <p className="text-white p-2">{user?.location || 'Não informado'}</p>
                 )}
               </div>
             </div>
@@ -265,12 +260,12 @@ export default function Profile() {
                 <Textarea
                   value={formData.bio}
                   onChange={(e) => handleInputChange('bio', e.target.value)}
-                  className="bg-white/5 border-white/10 text-white"
-                  placeholder="Conte um pouco sobre você..."
+                  className="bg-white/5 border-white/10 text-white resize-none"
+                  placeholder="Conte um pouco sobre você e sua música..."
                   rows={3}
                 />
               ) : (
-                <p className="text-white p-2">{profile?.bio || 'Nenhuma biografia adicionada'}</p>
+                <p className="text-white p-2">{user?.bio || 'Nenhuma biografia adicionada'}</p>
               )}
             </div>
 
@@ -287,16 +282,146 @@ export default function Profile() {
                 />
               ) : (
                 <p className="text-white p-2">
-                  {profile?.birth_date ? new Date(profile.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}
+                  {user?.birth_date ? new Date(user.birth_date).toLocaleDateString('pt-BR') : 'Não informado'}
                 </p>
               )}
             </div>
           </div>
-        </GlassCard>
+        </Card>
+
+        {/* Links and Social Media */}
+        <Card className="p-6 bg-black/40 backdrop-blur-xl border border-white/10">
+          <h3 className="text-lg font-semibold text-white mb-4">Links e Redes Sociais</h3>
+          
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                Portfolio/Site
+              </label>
+              {editing ? (
+                <Input
+                  value={formData.portfolio_url}
+                  onChange={(e) => handleInputChange('portfolio_url', e.target.value)}
+                  className="bg-white/5 border-white/10 text-white"
+                  placeholder="https://seusite.com"
+                />
+              ) : (
+                <p className="text-white p-2">
+                  {user?.portfolio_url ? (
+                    <a 
+                      href={user.portfolio_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-blue-400 hover:text-blue-300 flex items-center"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-1" />
+                      {user.portfolio_url}
+                    </a>
+                  ) : (
+                    'Não informado'
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  Instagram
+                </label>
+                {editing ? (
+                  <Input
+                    value={formData.instagram_url}
+                    onChange={(e) => handleInputChange('instagram_url', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    placeholder="@seuusuario"
+                  />
+                ) : (
+                  <p className="text-white p-2">
+                    {user?.instagram_url ? (
+                      <a 
+                        href={user.instagram_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-pink-400 hover:text-pink-300 flex items-center"
+                      >
+                        <Instagram className="w-4 h-4 mr-1" />
+                        Instagram
+                      </a>
+                    ) : (
+                      'Não informado'
+                    )}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-2">
+                  YouTube
+                </label>
+                {editing ? (
+                  <Input
+                    value={formData.youtube_url}
+                    onChange={(e) => handleInputChange('youtube_url', e.target.value)}
+                    className="bg-white/5 border-white/10 text-white"
+                    placeholder="Canal do YouTube"
+                  />
+                ) : (
+                  <p className="text-white p-2">
+                    {user?.youtube_url ? (
+                      <a 
+                        href={user.youtube_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-red-400 hover:text-red-300 flex items-center"
+                      >
+                        <Youtube className="w-4 h-4 mr-1" />
+                        YouTube
+                      </a>
+                    ) : (
+                      'Não informado'
+                    )}
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-2">
+                SoundCloud
+              </label>
+              {editing ? (
+                <Input
+                  value={formData.soundcloud_url}
+                  onChange={(e) => handleInputChange('soundcloud_url', e.target.value)}
+                  className="bg-white/5 border-white/10 text-white"
+                  placeholder="Perfil do SoundCloud"
+                />
+              ) : (
+                <p className="text-white p-2">
+                  {user?.soundcloud_url ? (
+                    <a 
+                      href={user.soundcloud_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-orange-400 hover:text-orange-300 flex items-center"
+                    >
+                      <Music className="w-4 h-4 mr-1" />
+                      SoundCloud
+                    </a>
+                  ) : (
+                    'Não informado'
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+        </Card>
 
         {/* Financial Information */}
-        <GlassCard className="p-6">
+        <Card className="p-6 bg-black/40 backdrop-blur-xl border border-white/10">
           <h3 className="text-lg font-semibold text-white mb-4">Informações Financeiras</h3>
+          
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-2">
               Chave PIX
@@ -310,11 +435,11 @@ export default function Profile() {
               />
             ) : (
               <p className="text-white p-2 font-mono text-sm">
-                {profile?.pix_key || 'Não informado'}
+                {user?.pix_key || 'Não informado'}
               </p>
             )}
           </div>
-        </GlassCard>
+        </Card>
 
         {/* Logout Button */}
         <div className="text-center pt-4">
@@ -327,6 +452,12 @@ export default function Profile() {
           </Button>
         </div>
       </div>
+
+      <ImageCropper
+        isOpen={cropperOpen}
+        onClose={() => setCropperOpen(false)}
+        onSave={handleCroppedImage}
+      />
 
       <IPhoneMenu />
     </div>
